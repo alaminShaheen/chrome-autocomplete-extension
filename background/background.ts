@@ -6,7 +6,7 @@ const registerEventListeners = () => {
 			case MessageTypes.REQUEST_COMPLETION: {
 				handleCompletion(message.body?.textInfo).then((completion) => {
 					console.log("📩 sending response:", completion);
-					sendResponse({ completion }); // Ensure response is sent
+					sendResponse({ completion });
 				}).catch((error) => {
 					console.error("❌ Error handling completion:", error);
 					sendResponse({ completion: "" });
@@ -21,9 +21,7 @@ const registerEventListeners = () => {
 
 async function handleCompletion(textInfo?: TextFieldInfo) {
 	if (!textInfo) return '';
-
-	// Here you would integrate with your AI service
-	// This is a placeholder that you'd replace with actual AI API calls
+	// TODO: Make AI requests
 	return 'sample completion';
 }
 

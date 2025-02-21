@@ -1,15 +1,18 @@
 import {isTextField} from "../shared/utils.ts";
 
-// Track active text field
 export let activeTextField: HTMLElement | null = null;
 export let completionOverlay: HTMLElement | null = null;
 
 export const initializeTextFieldTracking = () => {
-	// Monitor all text inputs and textareas
 	document.addEventListener('focusin', (e) => {
 		const target = e.target as HTMLElement;
 		if (isTextField(target)) {
-			console.log(target)
+			if (completionOverlay) {
+				if ((completionOverlay as any).cleanup) {
+					(completionOverlay as any).cleanup();
+				}
+				completionOverlay.remove();
+			}
 			activeTextField = target;
 			createCompletionOverlay(target);
 		}
@@ -17,6 +20,9 @@ export const initializeTextFieldTracking = () => {
 
 	document.addEventListener('focusout', () => {
 		if (completionOverlay) {
+			if ((completionOverlay as any).cleanup) {
+				(completionOverlay as any).cleanup();
+			}
 			completionOverlay.remove();
 			completionOverlay = null;
 		}
@@ -24,33 +30,34 @@ export const initializeTextFieldTracking = () => {
 	});
 }
 
-export const createCompletionOverlay = (textField: HTMLElement) => {
-	// Get position and styles of the text field
-	const rect = textField.getBoundingClientRect();
+const createCompletionOverlay = (textField: HTMLElement) => {
+	const updatePosition = () => {
+		const rect = textField.getBoundingClientRect();
+		if (completionOverlay) {
+			completionOverlay.style.left = `${rect.left}px`;
+			completionOverlay.style.top = `${rect.top}px`;
+			completionOverlay.style.width = `${rect.width}px`;
+			completionOverlay.style.height = `${rect.height}px`;
+		}
+	};
+
 	const styles = window.getComputedStyle(textField);
 
 	const currentSpanElement = document.createElement("span");
 	currentSpanElement.style.backgroundColor = "transparent";
 	currentSpanElement.style.color = "transparent";
-	currentSpanElement.id = "current-text";
+	currentSpanElement.classList.add("current-text");
 
 	const completionSpanElement = document.createElement("span");
-	completionSpanElement.id = "completion-text";
+	completionSpanElement.classList.add("completion-text");
 	completionSpanElement.style.color = "gray";
 
 	completionOverlay = document.createElement('div');
-	completionOverlay.id = 'completion-overlay';
+	completionOverlay.classList.add('completion-overlay');
 	completionOverlay.style.zIndex = '1000';
-	completionOverlay.style.position = 'absolute';
-	completionOverlay.style.left = `${rect.left}px`;
-	completionOverlay.style.top = `${rect.top}px`;
-	completionOverlay.style.width = `${rect.width}px`;
-	completionOverlay.style.height = `${rect.height}px`;
 
-	completionOverlay.style.overflowWrap = styles.overflowWrap;
-	completionOverlay.style.overflow = styles.overflow;
+	updatePosition();
 
-	// Copy more text-related styles
 	completionOverlay.style.font = styles.font;
 	completionOverlay.style.fontSize = styles.fontSize;
 	completionOverlay.style.lineHeight = styles.lineHeight;
@@ -59,15 +66,23 @@ export const createCompletionOverlay = (textField: HTMLElement) => {
 	completionOverlay.style.paddingBottom = styles.paddingBottom;
 	completionOverlay.style.textIndent = styles.textIndent;
 	completionOverlay.style.whiteSpace = styles.whiteSpace;
+	completionOverlay.style.overflowWrap = styles.overflowWrap;
 	completionOverlay.style.wordBreak = styles.wordBreak;
+	completionOverlay.style.overflow = styles.overflow;
 	completionOverlay.style.wordSpacing = styles.wordSpacing;
 	completionOverlay.style.letterSpacing = styles.letterSpacing;
-	completionOverlay.style.textIndent = styles.textIndent;
 	completionOverlay.style.boxSizing = styles.boxSizing;
-	// Add text-indent to match the input
-	completionOverlay.append(currentSpanElement, completionSpanElement);
-	// Important: this makes the completion text start where the current text ends
-	// completionOverlay.style.paddingLeft = `${(textField as HTMLInputElement).value.length}ch`;
 
+	completionOverlay.append(currentSpanElement, completionSpanElement);
 	document.body.appendChild(completionOverlay);
+
+	window.addEventListener('scroll', updatePosition, true);
+	window.addEventListener('resize', updatePosition);
+
+	const cleanup = () => {
+		window.removeEventListener('scroll', updatePosition, true);
+		window.removeEventListener('resize', updatePosition);
+	};
+
+	(completionOverlay as any).cleanup = cleanup;
 }

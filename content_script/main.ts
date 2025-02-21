@@ -3,10 +3,9 @@ import {activeTextField, completionOverlay, initializeTextFieldTracking} from ".
 import {isTextField} from "../shared/utils.ts";
 
 const registerEventListeners = () => {
-	// Listen for text input events
 	document.addEventListener('input', async (e) => {
 		const target = e.target as HTMLElement;
-		if (isTextField(target)) {
+		if (isTextField(target) && (target as HTMLTextAreaElement).value) {
 			const textInfo: TextFieldInfo = {
 				text: (target as HTMLInputElement | HTMLTextAreaElement).value,
 				cursorPosition: (target as HTMLInputElement | HTMLTextAreaElement).selectionStart || 0
@@ -17,7 +16,6 @@ const registerEventListeners = () => {
 				body: {textInfo}
 			})
 
-			// Request completion from background script
 			const response = await chrome.runtime.sendMessage({
 				type: MessageTypes.REQUEST_COMPLETION,
 				body: {textInfo}
@@ -31,10 +29,9 @@ const registerEventListeners = () => {
 		}
 	});
 
-	// Handle Tab key for completion
 	document.addEventListener('keydown', (e) => {
-		const completionTextSpan = document.getElementById("completion-text");
-		const currentTextSpan = document.getElementById("current-text");
+		const completionTextSpan = completionOverlay?.querySelector(".completion-text") as HTMLSpanElement;
+		const currentTextSpan = completionOverlay?.querySelector(".current-text") as HTMLSpanElement;
 
 		if (e.key === 'Tab' && completionTextSpan?.innerText) {
 			e.preventDefault();
@@ -45,24 +42,21 @@ const registerEventListeners = () => {
 
 const showCompletion = (completion: string) => {
 	if (completionOverlay && activeTextField) {
-		// Update the padding to match current text length
 		const currentText = (activeTextField as HTMLInputElement | HTMLTextAreaElement).value;
-		// completionOverlay.style.paddingLeft = `${currentText.length}ch`;
-		const currentTextSpan = document.getElementById("current-text");
-		const completionTextSpan = document.getElementById("completion-text");
+		const currentTextSpan = completionOverlay.querySelector(".current-text") as HTMLSpanElement;
+		const completionTextSpan = completionOverlay.querySelector(".completion-text") as HTMLSpanElement;
 
 		if (currentTextSpan) currentTextSpan.innerText = currentText;
 
 		if (completionTextSpan) completionTextSpan.innerText = completion;
 
-		// completionOverlay.innerText = completion;
 		console.log(currentText + completion);
 	}
 }
 
 const applyCompletion = (fullText: string) => {
-	const completionTextSpan = document.getElementById("completion-text");
-	const currentTextSpan = document.getElementById("current-text");
+	const completionTextSpan = completionOverlay?.querySelector(".completion-text") as HTMLSpanElement;
+	const currentTextSpan = completionOverlay?.querySelector(".current-text") as HTMLSpanElement;
 	if (activeTextField) {
 		(activeTextField as HTMLInputElement | HTMLTextAreaElement).value = fullText;
 	}
