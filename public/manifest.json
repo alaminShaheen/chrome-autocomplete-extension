@@ -1,0 +1,22 @@
+{
+  "manifest_version": 3,
+  "name": "Chrome Extension AI",
+  "description": "An extension to provide autocomplete for text fields",
+  "version": "1.0",
+  "action": {
+    "default_popup": "popup/index.html"
+  },
+  "content_scripts":[{
+    "js": ["assets/content.js"],
+    "matches": ["https://*/*"]
+  }],
+  "background":{
+    "service_worker": "assets/background.js",
+    "type": "module"
+  },
+  "web_accessible_resources": [{
+    "matches": ["https://*/*"],
+    "resources": ["assets/*"]
+  }],
+  "permissions":["bookmarks"]
+}
