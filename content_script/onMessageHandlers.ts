@@ -1,11 +1,11 @@
 import {isTextField} from "../shared/utils.ts";
 
-export let activeTextField: HTMLElement | null = null;
+export let activeTextField: HTMLTextAreaElement | null = null;
 export let completionOverlay: HTMLElement | null = null;
 
 export const initializeTextFieldTracking = () => {
 	document.addEventListener('focusin', (e) => {
-		const target = e.target as HTMLElement;
+		const target = e.target as HTMLTextAreaElement;
 		if (isTextField(target)) {
 			if (completionOverlay) {
 				if ((completionOverlay as any).cleanup) {
@@ -34,6 +34,7 @@ const createCompletionOverlay = (textField: HTMLElement) => {
 	const updatePosition = () => {
 		const rect = textField.getBoundingClientRect();
 		if (completionOverlay) {
+			completionOverlay.style.position = 'fixed';  // Changed to fixed
 			completionOverlay.style.left = `${rect.left}px`;
 			completionOverlay.style.top = `${rect.top}px`;
 			completionOverlay.style.width = `${rect.width}px`;
@@ -58,23 +59,21 @@ const createCompletionOverlay = (textField: HTMLElement) => {
 
 	updatePosition();
 
+	// Ensure the overlay looks exactly like the text field
 	completionOverlay.style.font = styles.font;
 	completionOverlay.style.fontSize = styles.fontSize;
 	completionOverlay.style.lineHeight = styles.lineHeight;
 	completionOverlay.style.padding = styles.padding;
-	completionOverlay.style.paddingTop = styles.paddingTop;
-	completionOverlay.style.paddingBottom = styles.paddingBottom;
 	completionOverlay.style.textIndent = styles.textIndent;
 	completionOverlay.style.whiteSpace = styles.whiteSpace;
 	completionOverlay.style.overflowWrap = styles.overflowWrap;
 	completionOverlay.style.wordBreak = styles.wordBreak;
-	completionOverlay.style.overflow = styles.overflow;
 	completionOverlay.style.wordSpacing = styles.wordSpacing;
 	completionOverlay.style.letterSpacing = styles.letterSpacing;
-	completionOverlay.style.boxSizing = styles.boxSizing;
+	completionOverlay.style.boxSizing = styles.boxSizing; // Ensure it matches text field
 
 	completionOverlay.append(currentSpanElement, completionSpanElement);
-	document.body.appendChild(completionOverlay);
+	textField.parentElement?.appendChild(completionOverlay); // Append inside parent instead of body
 
 	window.addEventListener('scroll', updatePosition, true);
 	window.addEventListener('resize', updatePosition);
@@ -85,4 +84,4 @@ const createCompletionOverlay = (textField: HTMLElement) => {
 	};
 
 	(completionOverlay as any).cleanup = cleanup;
-}
+};

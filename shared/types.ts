@@ -13,5 +13,9 @@ export interface Message {
 	body?: {
 		textInfo?: TextFieldInfo;
 		completion?: string;
+		metadata?: {
+			url?: string;
+			label?: string;
+		}
 	};
 }

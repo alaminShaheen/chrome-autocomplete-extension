@@ -14,4 +14,7 @@ export default defineConfig({
 			}
 		},
 	},
+	define: {
+		'import.meta.env.OPENAI_API_KEY': JSON.stringify(process.env.OPENAI_API_KEY),
+	},
 })
