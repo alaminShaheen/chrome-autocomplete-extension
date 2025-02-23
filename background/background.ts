@@ -29,7 +29,14 @@ async function handleCompletion(messageBody?: Message["body"]) {
 			const segmenter = new Intl.Segmenter('en', {granularity: 'sentence'});
 			const allSentences = Array.from(segmenter.segment(textInfo.text), segment => segment.segment);
 			lastSentences = lastSentences.concat(allSentences.slice(0, Math.min(3, allSentences.length)));
-			console.log({lastSentences: lastSentences.join("")});
+
+			// Manually add the remaining text if it's not empty
+			const lastSegmentEnd = lastSentences.join("").length;
+			const remainingText = textInfo.text.slice(lastSegmentEnd); // FIXED
+
+			if (remainingText.trim()) {
+				lastSentences.push(remainingText); // FIXED
+			}
 		}
 
 		const messages = [{
